@@ -35,12 +35,19 @@ MEDIA_DOMAIN=media.yourdomain.com
 
 # Let's Encrypt 注册邮箱 (用于接收证书过期通知，必填)
 CERT_EMAIL=admin@yourdomain.com
+
+# 允许访问的网站域名 (防盗链配置 - 强烈建议设置)
+# 格式: 域名之间用空格分开，支持通配符
+# 示例: *.yourdomain.com example.com
+ALLOWED_DOMAINS=*.yourdomain.com localhost
 ```
 
 #### 第二步：启动服务
-在项目根目录下运行：
-
 ```bash
+# 拉取最新代码 (如果是升级)
+git pull
+
+# 启动
 docker-compose up -d
 ```
 
