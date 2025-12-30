@@ -22,7 +22,7 @@ fi
 # We strictly filter which variables to replace so we don't break $host $remote_addr etc.
 echo "[Nginx] Generating configuration..."
 export DOLLAR='$'
-envsubst '${CLIENT_DOMAIN} ${IMAGE_DOMAIN} ${RELAY_DOMAIN} ${CLIENT_RELAY_DOMAIN} ${GAME_DOMAIN} ${GO_DOMAIN} ${MEDIA_DOMAIN}' < /etc/nginx/templates/crisp.conf.template > /etc/nginx/conf.d/crisp.conf
+envsubst '${CLIENT_DOMAIN} ${IMAGE_DOMAIN} ${RELAY_DOMAIN} ${CLIENT_RELAY_DOMAIN} ${GAME_DOMAIN} ${GO_DOMAIN} ${MEDIA_DOMAIN} ${ALLOWED_DOMAINS}' < /etc/nginx/templates/crisp.conf.template > /etc/nginx/conf.d/crisp.conf
 # Remove default config to prevent "localhost" server block from catching requests
 rm -f /etc/nginx/conf.d/default.conf
 
