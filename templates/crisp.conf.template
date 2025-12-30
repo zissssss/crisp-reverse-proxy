@@ -18,6 +18,10 @@ upstream media_crisp {
     server media.crisp.chat:443;
 }
 
+# DNS Resolver (Critical for dynamic upstream resolution in some Docker envs)
+resolver 8.8.8.8 1.1.1.1 valid=300s;
+resolver_timeout 5s;
+
 # Proxy Settings
 proxy_ssl_server_name on;
 proxy_ssl_protocols TLSv1.2 TLSv1.3;
