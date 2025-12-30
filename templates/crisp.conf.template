@@ -1,24 +1,4 @@
-# Upstreams
-upstream client_crisp {
-    server client.crisp.chat:443;
-}
-upstream image_crisp {
-    server image.crisp.chat:443;
-}
-upstream relay_crisp {
-    server client.relay.crisp.chat:443;
-}
-upstream game_crisp {
-    server game.crisp.chat:443;
-}
-upstream go_crisp {
-    server go.crisp.chat:443;
-}
-upstream media_crisp {
-    server media.crisp.chat:443;
-}
-
-# DNS Resolver (Critical for dynamic upstream resolution in some Docker envs)
+# DNS Resolver (Critical for dynamic upstream resolution)
 resolver 8.8.8.8 1.1.1.1 valid=300s;
 resolver_timeout 5s;
 
@@ -52,17 +32,14 @@ server {
     http2 on;
     server_name ${CLIENT_DOMAIN};
 
-    # Dynamic Cert Path (managed by init script to link to valid certs)
-    # Default to self-signed if live cert doesn't exist (handled by entrypoint logic or manual mapping)
-    # BUT for simplicity, we map specific paths. 
-    # USER MUST RUN config script to point these to live certs.
-    
-    # Placeholder: We will use a common path that we can swap.
     ssl_certificate /etc/nginx/certs/live/fullchain.pem;
     ssl_certificate_key /etc/nginx/certs/live/privkey.pem;
 
     location / {
-        proxy_pass https://client_crisp;
+        # Dynamic resolution to prevent startup crash
+        set $backend "https://client.crisp.chat";
+        proxy_pass $backend;
+        
         proxy_ssl_name client.crisp.chat;
         proxy_set_header Host client.crisp.chat;
         proxy_set_header Accept-Encoding "";
@@ -97,7 +74,9 @@ server {
     ssl_certificate_key /etc/nginx/certs/live/privkey.pem;
 
     location / {
-        proxy_pass https://image_crisp;
+        set $backend "https://image.crisp.chat";
+        proxy_pass $backend;
+        
         proxy_ssl_name image.crisp.chat;
         proxy_set_header Host image.crisp.chat;
         proxy_set_header X-Real-IP $remote_addr;
@@ -117,7 +96,9 @@ server {
     ssl_certificate_key /etc/nginx/certs/live/privkey.pem;
 
     location / {
-        proxy_pass https://relay_crisp;
+        set $backend "https://client.relay.crisp.chat";
+        proxy_pass $backend;
+        
         proxy_ssl_name client.relay.crisp.chat;
         proxy_set_header Host client.relay.crisp.chat;
         
@@ -142,7 +123,9 @@ server {
     ssl_certificate_key /etc/nginx/certs/live/privkey.pem;
 
     location / {
-        proxy_pass https://game_crisp;
+        set $backend "https://game.crisp.chat";
+        proxy_pass $backend;
+        
         proxy_ssl_name game.crisp.chat;
         proxy_set_header Host game.crisp.chat;
         proxy_set_header X-Real-IP $remote_addr;
@@ -159,7 +142,9 @@ server {
     ssl_certificate_key /etc/nginx/certs/live/privkey.pem;
 
     location / {
-        proxy_pass https://go_crisp;
+        set $backend "https://go.crisp.chat";
+        proxy_pass $backend;
+        
         proxy_ssl_name go.crisp.chat;
         proxy_set_header Host go.crisp.chat;
         proxy_set_header X-Real-IP $remote_addr;
@@ -176,7 +161,9 @@ server {
     ssl_certificate_key /etc/nginx/certs/live/privkey.pem;
 
     location / {
-        proxy_pass https://media_crisp;
+        set $backend "https://media.crisp.chat";
+        proxy_pass $backend;
+        
         proxy_ssl_name media.crisp.chat;
         proxy_set_header Host media.crisp.chat;
         proxy_set_header X-Real-IP $remote_addr;
