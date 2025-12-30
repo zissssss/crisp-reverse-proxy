@@ -1,0 +1,16 @@
+# Sensitive Configuration
+.env
+
+# Certificates
+certs/
+!certs/.keep
+center/
+*.pem
+*.crt
+*.key
+
+# Certbot Data
+certbot/
+
+# Logs
+*.log

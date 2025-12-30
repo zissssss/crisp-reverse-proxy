@@ -1,0 +1,175 @@
+# Upstreams
+upstream client_crisp {
+    server client.crisp.chat:443;
+}
+upstream image_crisp {
+    server image.crisp.chat:443;
+}
+upstream relay_crisp {
+    server client.relay.crisp.chat:443;
+}
+upstream game_crisp {
+    server game.crisp.chat:443;
+}
+upstream go_crisp {
+    server go.crisp.chat:443;
+}
+upstream media_crisp {
+    server media.crisp.chat:443;
+}
+
+# Proxy Settings
+proxy_ssl_server_name on;
+proxy_ssl_protocols TLSv1.2 TLSv1.3;
+proxy_http_version 1.1;
+proxy_set_header Connection "";
+
+# --------------------------------------------------------
+# HTTP Redirect & ACME Challenge (Port 80)
+# --------------------------------------------------------
+server {
+    listen 80;
+    server_name ${CLIENT_DOMAIN} ${IMAGE_DOMAIN} ${RELAY_DOMAIN} ${CLIENT_RELAY_DOMAIN} ${GAME_DOMAIN} ${GO_DOMAIN} ${MEDIA_DOMAIN};
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+# --------------------------------------------------------
+# 1. CLIENT DOMAIN
+# --------------------------------------------------------
+server {
+    listen 443 ssl;
+    server_name ${CLIENT_DOMAIN};
+
+    # Dynamic Cert Path (managed by init script to link to valid certs)
+    # Default to self-signed if live cert doesn't exist (handled by entrypoint logic or manual mapping)
+    # BUT for simplicity, we map specific paths. 
+    # USER MUST RUN config script to point these to live certs.
+    
+    # Placeholder: We will use a common path that we can swap.
+    ssl_certificate /etc/nginx/certs/live/fullchain.pem;
+    ssl_certificate_key /etc/nginx/certs/live/privkey.pem;
+
+    location / {
+        proxy_pass https://client_crisp;
+        proxy_ssl_name client.crisp.chat;
+        proxy_set_header Host client.crisp.chat;
+        proxy_set_header Accept-Encoding "";
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        
+        sub_filter_types text/javascript application/javascript application/x-javascript text/css application/json;
+        
+        sub_filter 'client.crisp.chat' '${CLIENT_DOMAIN}';
+        sub_filter 'image.crisp.chat' '${IMAGE_DOMAIN}';
+        sub_filter 'client.relay.crisp.chat' '${CLIENT_RELAY_DOMAIN}';
+        sub_filter 'wss://client.relay.crisp.chat' 'wss://${CLIENT_RELAY_DOMAIN}';
+        sub_filter 'relay.crisp.chat' '${RELAY_DOMAIN}';
+        sub_filter 'wss://relay.crisp.chat' 'wss://${RELAY_DOMAIN}';
+        sub_filter 'game.crisp.chat' '${GAME_DOMAIN}';
+        sub_filter 'go.crisp.chat' '${GO_DOMAIN}';
+        sub_filter 'media.crisp.chat' '${MEDIA_DOMAIN}';
+        
+        sub_filter_once off;
+    }
+}
+
+# --------------------------------------------------------
+# 2. IMAGE DOMAIN
+# --------------------------------------------------------
+server {
+    listen 443 ssl;
+    server_name ${IMAGE_DOMAIN};
+
+    ssl_certificate /etc/nginx/certs/live/fullchain.pem;
+    ssl_certificate_key /etc/nginx/certs/live/privkey.pem;
+
+    location / {
+        proxy_pass https://image_crisp;
+        proxy_ssl_name image.crisp.chat;
+        proxy_set_header Host image.crisp.chat;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+}
+
+# --------------------------------------------------------
+# 3. RELAY (WEBSOCKET) DOMAINS
+# --------------------------------------------------------
+server {
+    listen 443 ssl;
+    server_name ${RELAY_DOMAIN} ${CLIENT_RELAY_DOMAIN};
+
+    ssl_certificate /etc/nginx/certs/live/fullchain.pem;
+    ssl_certificate_key /etc/nginx/certs/live/privkey.pem;
+
+    location / {
+        proxy_pass https://relay_crisp;
+        proxy_ssl_name client.relay.crisp.chat;
+        proxy_set_header Host client.relay.crisp.chat;
+        
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "Upgrade";
+        
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+}
+
+# --------------------------------------------------------
+# 4. OTHER DOMAINS
+# --------------------------------------------------------
+server {
+    listen 443 ssl;
+    server_name ${GAME_DOMAIN};
+
+    ssl_certificate /etc/nginx/certs/live/fullchain.pem;
+    ssl_certificate_key /etc/nginx/certs/live/privkey.pem;
+
+    location / {
+        proxy_pass https://game_crisp;
+        proxy_ssl_name game.crisp.chat;
+        proxy_set_header Host game.crisp.chat;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+}
+
+server {
+    listen 443 ssl;
+    server_name ${GO_DOMAIN};
+
+    ssl_certificate /etc/nginx/certs/live/fullchain.pem;
+    ssl_certificate_key /etc/nginx/certs/live/privkey.pem;
+
+    location / {
+        proxy_pass https://go_crisp;
+        proxy_ssl_name go.crisp.chat;
+        proxy_set_header Host go.crisp.chat;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+}
+
+server {
+    listen 443 ssl;
+    server_name ${MEDIA_DOMAIN};
+
+    ssl_certificate /etc/nginx/certs/live/fullchain.pem;
+    ssl_certificate_key /etc/nginx/certs/live/privkey.pem;
+
+    location / {
+        proxy_pass https://media_crisp;
+        proxy_ssl_name media.crisp.chat;
+        proxy_set_header Host media.crisp.chat;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+}

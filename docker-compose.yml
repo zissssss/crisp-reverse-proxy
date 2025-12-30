@@ -1,0 +1,35 @@
+services:
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    env_file:
+      - .env
+    volumes:
+      - ./templates:/etc/nginx/templates
+      - ./scripts:/scripts
+      # Shared local volume for live certs
+      - ./certs/live:/etc/nginx/certs/live
+      # Webroot for ACME challenge
+      - ./certbot/www:/var/www/certbot
+    networks:
+      - crisp_net
+    entrypoint: [ "/scripts/nginx-entrypoint.sh" ]
+
+  certbot:
+    image: certbot/certbot
+    env_file:
+      - .env
+    volumes:
+      - ./scripts:/scripts
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+      - ./certs/live:/etc/nginx/certs/live
+    networks:
+      - crisp_net
+    entrypoint: [ "/scripts/certbot-entrypoint.sh" ]
+
+networks:
+  crisp_net:
+    driver: bridge
