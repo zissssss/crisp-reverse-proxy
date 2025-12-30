@@ -26,7 +26,7 @@ IMAGE_DOMAIN=image.yourdomain.com
 
 # WebSocket 域名 (例如: ws.yourdomain.com)
 RELAY_DOMAIN=relay.yourdomain.com
-CLIENT_RELAY_DOMAIN=client.relay.yourdomain.com
+CLIENT_RELAY_DOMAIN=client-relay.yourdomain.com
 
 # 其他功能域名 (保持二级域名格式即可，例如: game.yourdomain.com)
 GAME_DOMAIN=game.yourdomain.com
